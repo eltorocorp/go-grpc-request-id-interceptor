@@ -67,12 +67,12 @@ func newRequestID() string {
 // FullMethod is the full RPC method string, i.e., /package.service/method.
 func logRequestWithID(requestData interface{}, requestID, fullMethod string) {
 	methodPath := strings.Split(fullMethod, "/")
-	if len(methodPath) > 1 {
+	if len(methodPath) > 2 {
 		logrus.WithFields(logrus.Fields{
 			"Request Data":    fmt.Sprintf("%+v", requestData),
 			"Request ID":      requestID,
-			"Package.Service": methodPath[0],
-			"Method Name":     methodPath[1],
+			"Package.Service": methodPath[1],
+			"Method Name":     methodPath[2],
 		}).Infof("Request ID appended to request")
 	} else {
 		logrus.WithFields(logrus.Fields{
