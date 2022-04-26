@@ -61,12 +61,18 @@ func defaultReqeustIDValidator(requestID string) bool {
 
 // Adds the incoming request & ID to the logrus entry in context
 func addRequestToLogger(ctx context.Context, requestID string, requestData interface{}) context.Context {
-	log := ctxlogrus.Extract(ctx).WithFields(
-		logrus.Fields{
-			"Request ID":   requestID,
-			"Request Data": fmt.Sprintf("%+v", requestData),
-		})
+	// Create a new logger if the logrus logger is in panic level (most likeyly a nullLogger)
+	log := logrus.NewEntry(logrus.New())
+	if l := ctxlogrus.Extract(ctx); l.Level != logrus.PanicLevel {
+		log = l
+	}
 
-	log.Log(log.Logger.GetLevel(), "RequestID added")
+	// Attach Request ID and Data
+	log = log.WithFields(logrus.Fields{
+		"Request ID":   requestID,
+		"Request Data": fmt.Sprintf("%+v", requestData),
+	})
+
+	log.Info("Request ID added")
 	return ctxlogrus.ToContext(ctx, log)
 }

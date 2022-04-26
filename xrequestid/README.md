@@ -12,6 +12,7 @@ xrequestid is an grpc interceptor which receives request id from metadata and se
 - Dependencies Added:
   - github.com/sirupsen/logrus
   - github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus
+- Put the server interceptor before the `github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus` interceptor to have the request ID and data included in the response log
 
 ## Usage
 
