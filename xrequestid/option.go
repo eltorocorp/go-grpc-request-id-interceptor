@@ -59,7 +59,7 @@ func defaultReqeustIDValidator(requestID string) bool {
 	return true
 }
 
-// Logs the incoming request logrus in context
+// Adds the incoming request & ID to the logrus entry in context
 func addRequestToLogger(ctx context.Context, requestID string, requestData interface{}) context.Context {
 	log := ctxlogrus.Extract(ctx).WithFields(
 		logrus.Fields{
@@ -67,6 +67,6 @@ func addRequestToLogger(ctx context.Context, requestID string, requestData inter
 			"Request Data": fmt.Sprintf("%+v", requestData),
 		})
 
-	log.Info("request made")
+	log.Info("RequestID added")
 	return ctxlogrus.ToContext(ctx, log)
 }
