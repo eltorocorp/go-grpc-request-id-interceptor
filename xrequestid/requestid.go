@@ -2,10 +2,8 @@ package xrequestid
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
@@ -61,24 +59,4 @@ func HandleRequestIDChain(ctx context.Context, validator requestIDValidator) str
 
 func newRequestID() string {
 	return uuid.NewString()
-}
-
-// Logs the incoming request with the new request id. full.const
-// FullMethod is the full RPC method string, i.e., /package.service/method.
-func logRequestWithID(requestData interface{}, requestID, fullMethod string) {
-	methodPath := strings.Split(fullMethod, "/")
-	if len(methodPath) > 2 {
-		logrus.WithFields(logrus.Fields{
-			"Request Data":    fmt.Sprintf("%+v", requestData),
-			"Request ID":      requestID,
-			"Package.Service": methodPath[1],
-			"Method Name":     methodPath[2],
-		}).Infof("Request ID appended to request")
-	} else {
-		logrus.WithFields(logrus.Fields{
-			"Request Data":     fmt.Sprintf("%+v", requestData),
-			"Request ID":       requestID,
-			"Full Method Path": fullMethod,
-		}).Infof("Request ID appended to request")
-	}
 }

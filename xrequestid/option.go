@@ -1,5 +1,13 @@
 package xrequestid
 
+import (
+	"context"
+	"fmt"
+
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
+	"github.com/sirupsen/logrus"
+)
+
 type Option interface {
 	apply(*options)
 }
@@ -49,4 +57,16 @@ func RequestIDValidator(validator requestIDValidator) Option {
 
 func defaultReqeustIDValidator(requestID string) bool {
 	return true
+}
+
+// Logs the incoming request logrus in context
+func addRequestToLogger(ctx context.Context, requestID string, requestData interface{}) context.Context {
+	log := ctxlogrus.Extract(ctx).WithFields(
+		logrus.Fields{
+			"Request ID":   requestID,
+			"Request Data": fmt.Sprintf("%+v", requestData),
+		})
+
+	log.Info("request made")
+	return ctxlogrus.ToContext(ctx, log)
 }
