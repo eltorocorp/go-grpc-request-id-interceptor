@@ -67,6 +67,6 @@ func addRequestToLogger(ctx context.Context, requestID string, requestData inter
 			"Request Data": fmt.Sprintf("%+v", requestData),
 		})
 
-	log.Info("RequestID added")
+	log.Log(log.Logger.GetLevel(), "RequestID added")
 	return ctxlogrus.ToContext(ctx, log)
 }
