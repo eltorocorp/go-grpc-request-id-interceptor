@@ -25,17 +25,13 @@ func UnaryServerInterceptor(opt ...Option) grpc.UnaryServerInterceptor {
 		} else {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
+		if opts.persistRequestID {
+			ctx = metadata.AppendToOutgoingContext(ctx, DefaultXRequestIDKey, requestID)
+		}
 		if opts.logRequest {
 			ctx = addRequestToLogger(ctx, requestID, req)
 		}
 		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
-		for _, header := range opts.persistHeaders {
-			headerValue := getStringFromContext(ctx, header)
-			if header == DefaultXRequestIDKey {
-				headerValue = requestID
-			}
-			ctx = metadata.AppendToOutgoingContext(ctx, header, headerValue)
-		}
 		return handler(ctx, req)
 	}
 }
@@ -55,18 +51,14 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		} else {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
+		if opts.persistRequestID {
+			ctx = metadata.AppendToOutgoingContext(ctx, DefaultXRequestIDKey, requestID)
+		}
 		if opts.logRequest {
 			ctx = addRequestToLogger(ctx, requestID, "stream_data")
 		}
 		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
 		stream = multiint.NewServerStreamWithContext(stream, ctx)
-		for _, header := range opts.persistHeaders {
-			headerValue := getStringFromContext(ctx, header)
-			if header == DefaultXRequestIDKey {
-				headerValue = requestID
-			}
-			ctx = metadata.AppendToOutgoingContext(ctx, header, headerValue)
-		}
 		return handler(srv, stream)
 	}
 }
@@ -82,19 +74,4 @@ func FromContext(ctx context.Context) string {
 // Create a context with the private requestIDKey{} for testing
 func ContextWithID(ctx context.Context, requestID string) context.Context {
 	return context.WithValue(ctx, requestIDKey{}, requestID)
-}
-
-// Gets the key value from the provided context, or returns an empty string
-func getStringFromContext(ctx context.Context, key string) string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ""
-	}
-
-	header, ok := md[key]
-	if !ok || len(header) == 0 {
-		return ""
-	}
-
-	return header[0]
 }

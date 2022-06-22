@@ -19,10 +19,10 @@ func (a optionApplyer) apply(opt *options) {
 }
 
 type options struct {
-	chainRequestID bool
-	persistHeaders []string
-	logRequest     bool
-	validator      requestIDValidator
+	chainRequestID   bool
+	persistRequestID bool
+	logRequest       bool
+	validator        requestIDValidator
 }
 
 func ChainRequestID() Option {
@@ -32,9 +32,9 @@ func ChainRequestID() Option {
 }
 
 // Attach the request id to the outgoing context
-func PersistHeaders(headers []string) Option {
+func PersistRequestID() Option {
 	return optionApplyer(func(opt *options) {
-		opt.persistHeaders = headers
+		opt.persistRequestID = true
 	})
 }
 
@@ -73,6 +73,6 @@ func addRequestToLogger(ctx context.Context, requestID string, requestData inter
 		"Request Data": fmt.Sprintf("%+v", requestData),
 	})
 
-	log.Info("RequestID Added")
+	log.Info("Request ID added")
 	return ctxlogrus.ToContext(ctx, log)
 }

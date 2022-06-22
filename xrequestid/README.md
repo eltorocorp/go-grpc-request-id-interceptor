@@ -7,14 +7,12 @@ xrequestid is an grpc interceptor which receives request id from metadata and se
 - Use `uuid` instead of `shortuuid` since we are not passing it through context and not the url
 - Fixed the Compilation errors due to the depricated `metadata.FromContext` function
 - Added a `go.mod` and replaced imports with the go mod equivilent
-- Add an option `PersistHeaders` if you would like to add any incoming headers to the outgoing context
-  - Use DefaultXRequestIDKey variable for the xrequest ID to be persisted
-  - Example: `xrequestid.PersistHeaders([]string{xrequestid.DefaultXRequestIDKey, "authorization"})`
+- Add an option `persistRequestID` if you would like to add the request ID to the outgoing context
 - Add interceptor option to Log the incoming request along with the Request ID to the logrus entry in context.
 - Dependencies Added:
   - github.com/sirupsen/logrus
   - github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus
-- Note: Put the server interceptor before the `github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus` interceptor to have the request ID and data included in the response log
+- Put the server interceptor before the `github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus` interceptor to have the request ID and data included in the response log
 
 ## Usage
 
