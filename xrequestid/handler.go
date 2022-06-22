@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	multiint "github.com/eltorocorp/go-grpc-request-id-interceptor/multiinterceptor"
-	"github.com/sirupsen/logrus"
 )
 
 type requestIDKey struct{}
@@ -59,7 +58,6 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		stream = multiint.NewServerStreamWithContext(stream, ctx)
 		for _, header := range opts.persistHeaders {
 			ctx = metadata.AppendToOutgoingContext(ctx, header, getStringFromContext(ctx, header))
-			logrus.WithField("KEEP", getStringFromContext(ctx, header)).Info("CHECK HERE FOR HEADER")
 		}
 		return handler(srv, stream)
 	}
