@@ -30,7 +30,11 @@ func UnaryServerInterceptor(opt ...Option) grpc.UnaryServerInterceptor {
 		}
 		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
 		for _, header := range opts.persistHeaders {
-			ctx = metadata.AppendToOutgoingContext(ctx, header, getStringFromContext(ctx, header))
+			headerValue := getStringFromContext(ctx, header)
+			if header == DefaultXRequestIDKey {
+				headerValue = requestID
+			}
+			ctx = metadata.AppendToOutgoingContext(ctx, header, headerValue)
 		}
 		return handler(ctx, req)
 	}
@@ -57,7 +61,11 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
 		stream = multiint.NewServerStreamWithContext(stream, ctx)
 		for _, header := range opts.persistHeaders {
-			ctx = metadata.AppendToOutgoingContext(ctx, header, getStringFromContext(ctx, header))
+			headerValue := getStringFromContext(ctx, header)
+			if header == DefaultXRequestIDKey {
+				headerValue = requestID
+			}
+			ctx = metadata.AppendToOutgoingContext(ctx, header, headerValue)
 		}
 		return handler(srv, stream)
 	}
