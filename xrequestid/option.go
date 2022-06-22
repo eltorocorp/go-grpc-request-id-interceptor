@@ -19,10 +19,10 @@ func (a optionApplyer) apply(opt *options) {
 }
 
 type options struct {
-	chainRequestID   bool
-	persistRequestID bool
-	logRequest       bool
-	validator        requestIDValidator
+	chainRequestID bool
+	persistHeaders []string
+	logRequest     bool
+	validator      requestIDValidator
 }
 
 func ChainRequestID() Option {
@@ -32,9 +32,9 @@ func ChainRequestID() Option {
 }
 
 // Attach the request id to the outgoing context
-func PersistRequestID() Option {
+func PersistHeaders(headers []string) Option {
 	return optionApplyer(func(opt *options) {
-		opt.persistRequestID = true
+		opt.persistHeaders = headers
 	})
 }
 

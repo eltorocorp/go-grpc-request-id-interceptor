@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	multiint "github.com/eltorocorp/go-grpc-request-id-interceptor/multiinterceptor"
+	"github.com/sirupsen/logrus"
 )
 
 type requestIDKey struct{}
@@ -25,13 +26,13 @@ func UnaryServerInterceptor(opt ...Option) grpc.UnaryServerInterceptor {
 		} else {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
-		if opts.persistRequestID {
-			ctx = metadata.AppendToOutgoingContext(ctx, DefaultXRequestIDKey, requestID)
-		}
 		if opts.logRequest {
 			ctx = addRequestToLogger(ctx, requestID, req)
 		}
 		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
+		for _, header := range opts.persistHeaders {
+			ctx = metadata.AppendToOutgoingContext(ctx, header, getStringFromContext(ctx, header))
+		}
 		return handler(ctx, req)
 	}
 }
@@ -51,14 +52,15 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		} else {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
-		if opts.persistRequestID {
-			ctx = metadata.AppendToOutgoingContext(ctx, DefaultXRequestIDKey, requestID)
-		}
 		if opts.logRequest {
 			ctx = addRequestToLogger(ctx, requestID, "stream_data")
 		}
 		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
 		stream = multiint.NewServerStreamWithContext(stream, ctx)
+		for _, header := range opts.persistHeaders {
+			ctx = metadata.AppendToOutgoingContext(ctx, header, getStringFromContext(ctx, header))
+			logrus.WithField("KEEP", getStringFromContext(ctx, header)).Info("CHECK HERE FOR HEADER")
+		}
 		return handler(srv, stream)
 	}
 }
@@ -74,4 +76,19 @@ func FromContext(ctx context.Context) string {
 // Create a context with the private requestIDKey{} for testing
 func ContextWithID(ctx context.Context, requestID string) context.Context {
 	return context.WithValue(ctx, requestIDKey{}, requestID)
+}
+
+// Gets the key value from the provided context, or returns an empty string
+func getStringFromContext(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+
+	header, ok := md[key]
+	if !ok || len(header) == 0 {
+		return newRequestID()
+	}
+
+	return header[0]
 }
