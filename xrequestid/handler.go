@@ -85,7 +85,7 @@ func getStringFromContext(ctx context.Context, key string) string {
 
 	header, ok := md[key]
 	if !ok || len(header) == 0 {
-		return newRequestID()
+		return ""
 	}
 
 	return header[0]

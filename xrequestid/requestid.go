@@ -12,11 +12,7 @@ var DefaultXRequestIDKey = "x-request-id"
 
 func HandleRequestID(ctx context.Context, validator requestIDValidator) string {
 	requestID := getStringFromContext(ctx, DefaultXRequestIDKey)
-	if requestID == "" {
-		return newRequestID()
-	}
-
-	if !validator(requestID) {
+	if requestID == "" || !validator(requestID) {
 		return newRequestID()
 	}
 
@@ -25,11 +21,7 @@ func HandleRequestID(ctx context.Context, validator requestIDValidator) string {
 
 func HandleRequestIDChain(ctx context.Context, validator requestIDValidator) string {
 	requestID := getStringFromContext(ctx, DefaultXRequestIDKey)
-	if requestID == "" {
-		return newRequestID()
-	}
-
-	if !validator(requestID) {
+	if requestID == "" || !validator(requestID) {
 		return newRequestID()
 	}
 
