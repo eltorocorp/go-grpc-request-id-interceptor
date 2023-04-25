@@ -11,6 +11,18 @@ import (
 
 type requestIDKey struct{}
 
+type serverStreamWrapper struct {
+	ss  grpc.ServerStream
+	ctx context.Context
+}
+
+func (w serverStreamWrapper) Context() context.Context        { return w.ctx }
+func (w serverStreamWrapper) RecvMsg(msg interface{}) error   { return w.ss.RecvMsg(msg) }
+func (w serverStreamWrapper) SendMsg(msg interface{}) error   { return w.ss.SendMsg(msg) }
+func (w serverStreamWrapper) SendHeader(md metadata.MD) error { return w.ss.SendHeader(md) }
+func (w serverStreamWrapper) SetHeader(md metadata.MD) error  { return w.ss.SetHeader(md) }
+func (w serverStreamWrapper) SetTrailer(md metadata.MD)       { w.ss.SetTrailer(md) }
+
 func UnaryServerInterceptor(opt ...Option) grpc.UnaryServerInterceptor {
 	var opts options
 	opts.validator = defaultReqeustIDValidator
@@ -68,7 +80,7 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 			}
 			ctx = metadata.AppendToOutgoingContext(ctx, header, headerValue)
 		}
-		return handler(srv, stream)
+		return handler(srv, serverStreamWrapper{stream, ctx})
 	}
 }
 
