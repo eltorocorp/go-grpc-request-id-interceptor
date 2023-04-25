@@ -49,6 +49,7 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 		ctx := stream.Context()
+		// tests
 		var requestID string
 		if opts.chainRequestID {
 			requestID = HandleRequestIDChain(ctx, opts.validator)
