@@ -81,7 +81,8 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		newCtx := metadata.NewIncomingContext(ctx, md)
 		// tests
 		if opts.logRequest {
-			newCtx = addRequestToLogger(newCtx, requestID, newCtx)
+			md, _ := metadata.FromIncomingContext(newCtx)
+			newCtx = addRequestToLogger(newCtx, requestID, md)
 		}
 		return handler(srv, serverStreamWrapper{stream, newCtx})
 	}
