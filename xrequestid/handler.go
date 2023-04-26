@@ -61,15 +61,11 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 		ctx := stream.Context()
-		// tests
 		var requestID string
 		if opts.chainRequestID {
 			requestID = HandleRequestIDChain(ctx, opts.validator)
 		} else {
 			requestID = HandleRequestID(ctx, opts.validator)
-		}
-		if opts.logRequest {
-			ctx = addRequestToLogger(ctx, requestID, "stream_data")
 		}
 		metaMap := make(map[string]string)
 		metaMap[DefaultXRequestIDKey] = requestID
@@ -83,6 +79,10 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		}
 		md := metadata.New(metaMap)
 		newCtx := metadata.NewIncomingContext(ctx, md)
+		// tests
+		if opts.logRequest {
+			newCtx = addRequestToLogger(newCtx, requestID, "stream_data")
+		}
 		return handler(srv, serverStreamWrapper{stream, newCtx})
 	}
 }
