@@ -68,7 +68,6 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
 		metaMap := make(map[string]string)
-		metaMap[DefaultXRequestIDKey] = requestID
 		stream = multiint.NewServerStreamWithContext(stream, ctx)
 		for _, header := range opts.persistHeaders {
 			headerValue := getStringFromContext(ctx, header)
@@ -77,8 +76,7 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 			}
 			metaMap[header] = headerValue
 		}
-		md := metadata.New(metaMap)
-		newCtx := metadata.NewIncomingContext(ctx, md)
+		newCtx := metadata.NewIncomingContext(ctx, metadata.New(metaMap))
 		// tests
 		if opts.logRequest {
 			newCtx = addRequestToLogger(newCtx, requestID, "stream_data")
