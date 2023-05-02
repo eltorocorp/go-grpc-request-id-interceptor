@@ -11,6 +11,18 @@ import (
 
 type requestIDKey struct{}
 
+type serverStreamWrapper struct {
+	ss  grpc.ServerStream
+	ctx context.Context
+}
+
+func (w serverStreamWrapper) Context() context.Context        { return w.ctx }
+func (w serverStreamWrapper) RecvMsg(msg interface{}) error   { return w.ss.RecvMsg(msg) }
+func (w serverStreamWrapper) SendMsg(msg interface{}) error   { return w.ss.SendMsg(msg) }
+func (w serverStreamWrapper) SendHeader(md metadata.MD) error { return w.ss.SendHeader(md) }
+func (w serverStreamWrapper) SetHeader(md metadata.MD) error  { return w.ss.SetHeader(md) }
+func (w serverStreamWrapper) SetTrailer(md metadata.MD)       { w.ss.SetTrailer(md) }
+
 func UnaryServerInterceptor(opt ...Option) grpc.UnaryServerInterceptor {
 	var opts options
 	opts.validator = defaultReqeustIDValidator
@@ -55,19 +67,21 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		} else {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
-		if opts.logRequest {
-			ctx = addRequestToLogger(ctx, requestID, "stream_data")
-		}
-		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
+		metaMap := make(map[string]string)
 		stream = multiint.NewServerStreamWithContext(stream, ctx)
 		for _, header := range opts.persistHeaders {
 			headerValue := getStringFromContext(ctx, header)
 			if header == DefaultXRequestIDKey {
-				headerValue = requestID
+				metaMap[header] = requestID
 			}
-			ctx = metadata.AppendToOutgoingContext(ctx, header, headerValue)
+			metaMap[header] = headerValue
 		}
-		return handler(srv, stream)
+		newCtx := metadata.NewIncomingContext(ctx, metadata.New(metaMap))
+		// tests
+		if opts.logRequest {
+			newCtx = addRequestToLogger(newCtx, requestID, "stream_data")
+		}
+		return handler(srv, serverStreamWrapper{stream, newCtx})
 	}
 }
 
