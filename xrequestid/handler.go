@@ -5,8 +5,6 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-
-	multiint "github.com/eltorocorp/go-grpc-request-id-interceptor/multiinterceptor"
 )
 
 type requestIDKey struct{}
@@ -67,21 +65,24 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		} else {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
+		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
 		metaMap := make(map[string]string)
-		stream = multiint.NewServerStreamWithContext(stream, ctx)
 		for _, header := range opts.persistHeaders {
-			headerValue := getStringFromContext(ctx, header)
 			if header == DefaultXRequestIDKey {
 				metaMap[header] = requestID
+			} else {
+				metaMap[header] = getStringFromContext(ctx, header)
 			}
-			metaMap[header] = headerValue
 		}
-		newCtx := metadata.NewIncomingContext(ctx, metadata.New(metaMap))
-		// tests
+		if len(metaMap) > 0 {
+			if err := stream.SetHeader(metadata.New(metaMap)); err != nil {
+				return err
+			}
+		}
 		if opts.logRequest {
-			newCtx = addRequestToLogger(newCtx, requestID, "stream_data")
+			ctx = addRequestToLogger(ctx, requestID, "stream_data")
 		}
-		return handler(srv, serverStreamWrapper{stream, newCtx})
+		return handler(srv, serverStreamWrapper{stream, ctx})
 	}
 }
 
