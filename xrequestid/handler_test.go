@@ -203,6 +203,57 @@ func TestStreamServerWithRequestIDChain(t *testing.T) {
 	}
 }
 
+// headerRecordingStream records the response headers the interceptor sets.
+type headerRecordingStream struct {
+	testServerStream
+	header metadata.MD
+}
+
+func (s *headerRecordingStream) SetHeader(md metadata.MD) error {
+	s.header = metadata.Join(s.header, md)
+	return nil
+}
+
+func (s *headerRecordingStream) SendHeader(md metadata.MD) error {
+	return s.SetHeader(md)
+}
+
+// A streaming call sends no headers back, even with PersistHeaders set.
+// Sending authorization back would copy the caller's bearer token into every
+// response, where proxies and logs can keep it. The handler still gets the
+// request ID and can still read the token.
+func TestStreamServerSendsNoHeadersBack(t *testing.T) {
+	requestID := uuid.NewString()
+	ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs(
+		DefaultXRequestIDKey, requestID,
+		"authorization", "Bearer secret-token",
+		"user_id", "user-1",
+	))
+	stream := &headerRecordingStream{testServerStream: testServerStream{ctx: ctx}}
+
+	streamHandler := func(srv interface{}, stream grpc.ServerStream) error {
+		if got := FromContext(stream.Context()); got != requestID {
+			t.Errorf("FromContext() = %q, want %q", got, requestID)
+		}
+
+		// The handler still has to authenticate, so the token must stay readable.
+		md, _ := metadata.FromIncomingContext(stream.Context())
+		if got := md.Get("authorization"); len(got) != 1 || got[0] != "Bearer secret-token" {
+			t.Errorf("incoming authorization = %v, want the caller's token", got)
+		}
+		return nil
+	}
+
+	interceptor := StreamServerInterceptor(PersistHeaders([]string{DefaultXRequestIDKey, "authorization", "user_id"}))
+	if err := interceptor(struct{}{}, stream, streamInfo, streamHandler); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(stream.header) != 0 {
+		t.Errorf("response header = %v, want none", stream.header)
+	}
+}
+
 func TestStreamServerWithValidator(t *testing.T) {
 	requestID := "xyz"
 

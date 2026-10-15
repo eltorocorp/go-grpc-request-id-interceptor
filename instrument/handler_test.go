@@ -55,10 +55,10 @@ func TestUnaryServer(t *testing.T) {
 	}
 
 	if got, want := callCounter[methodName], 3; got != want {
-		t.Errorf("expect counter to %q, but got %q", want, got)
+		t.Errorf("expect counter to %v, but got %v", want, got)
 	}
 	if got, want := callErrors, 1; got != want {
-		t.Errorf("expect errors to %q, but got %q", want, got)
+		t.Errorf("expect errors to %v, but got %v", want, got)
 	}
 }
 
@@ -92,9 +92,9 @@ func TestStreamServer(t *testing.T) {
 	}
 
 	if got, want := callCounter[methodName], 3; got != want {
-		t.Errorf("expect counter to %q, but got %q", want, got)
+		t.Errorf("expect counter to %v, but got %v", want, got)
 	}
 	if got, want := callErrors, 1; got != want {
-		t.Errorf("expect errors to %q, but got %q", want, got)
+		t.Errorf("expect errors to %v, but got %v", want, got)
 	}
 }

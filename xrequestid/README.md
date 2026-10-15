@@ -10,6 +10,7 @@ xrequestid is an grpc interceptor which receives request id from metadata and se
 - Add an option `PersistHeaders` if you would like to add any incoming headers to the outgoing context
   - Use DefaultXRequestIDKey variable for the xrequest ID to be persisted
   - Example: `xrequestid.PersistHeaders([]string{xrequestid.DefaultXRequestIDKey, "authorization"})`
+  - On streaming calls, `PersistHeaders` has no effect and nothing is sent back to the client. The request ID is in the handler's context, through `FromContext`.
 - Add interceptor option to Log the incoming request along with the Request ID to the logrus entry in context.
 - Dependencies Added:
   - github.com/sirupsen/logrus

@@ -10,7 +10,6 @@ import (
 
 var _ PanicHandler = LogPanicDump
 
-// LogPanicDump is a PanicHandler which dumps stack trace.
-func LogPanicDump(ctx context.Context, r interface{}) {
-	fmt.Fprintf(os.Stderr, string(debug.Stack()))
+func LogPanicDump(ctx context.Context, r any) {
+	_, _ = fmt.Fprint(os.Stderr, string(debug.Stack()))
 }
