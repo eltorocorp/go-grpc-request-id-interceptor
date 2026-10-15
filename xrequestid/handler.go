@@ -57,7 +57,7 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 		o.apply(&opts)
 	}
 
-	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 		ctx := stream.Context()
 		var requestID string
 		if opts.chainRequestID {
@@ -66,19 +66,9 @@ func StreamServerInterceptor(opt ...Option) grpc.StreamServerInterceptor {
 			requestID = HandleRequestID(ctx, opts.validator)
 		}
 		ctx = context.WithValue(ctx, requestIDKey{}, requestID)
-		metaMap := make(map[string]string)
-		for _, header := range opts.persistHeaders {
-			if header == DefaultXRequestIDKey {
-				metaMap[header] = requestID
-			} else {
-				metaMap[header] = getStringFromContext(ctx, header)
-			}
-		}
-		if len(metaMap) > 0 {
-			if err := stream.SetHeader(metadata.New(metaMap)); err != nil {
-				return err
-			}
-		}
+		// Nothing goes back to the caller. Persisted headers include authorization,
+		// so sending them back would copy the caller's bearer token into every
+		// streaming response. The handler still reads them from the incoming metadata.
 		if opts.logRequest {
 			ctx = addRequestToLogger(ctx, requestID, "stream_data")
 		}

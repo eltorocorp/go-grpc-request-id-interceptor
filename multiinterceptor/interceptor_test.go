@@ -40,7 +40,7 @@ func TestUnaryServer(t *testing.T) {
 			t.Errorf("expect output to %q, but got %q", want, got)
 		}
 		if got, want := ctx.Value("foo").(int), 1; got != want {
-			t.Errorf("expect output to %q, but got %q", want, got)
+			t.Errorf("expect output to %v, but got %v", want, got)
 		}
 
 		ctx = context.WithValue(ctx, "bar", 2)
@@ -55,10 +55,10 @@ func TestUnaryServer(t *testing.T) {
 			t.Errorf("expect output to %q, but got %q", want, got)
 		}
 		if got, want := ctx.Value("foo").(int), 1; got != want {
-			t.Errorf("expect output to %q, but got %q", want, got)
+			t.Errorf("expect output to %v, but got %v", want, got)
 		}
 		if got, want := ctx.Value("bar").(int), 2; got != want {
-			t.Errorf("expect output to %q, but got %q", want, got)
+			t.Errorf("expect output to %v, but got %v", want, got)
 		}
 
 		return "output", nil
@@ -85,7 +85,7 @@ func TestStreamServer(t *testing.T) {
 	bar := func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		ctx := stream.Context()
 		if got, want := ctx.Value("foo").(int), 1; got != want {
-			t.Errorf("expect output to %q, but got %q", want, got)
+			t.Errorf("expect output to %v, but got %v", want, got)
 		}
 
 		ctx = context.WithValue(ctx, "bar", 2)
@@ -100,10 +100,10 @@ func TestStreamServer(t *testing.T) {
 	streamHandler := func(srv interface{}, stream grpc.ServerStream) error {
 		ctx := stream.Context()
 		if got, want := ctx.Value("foo").(int), 1; got != want {
-			t.Errorf("expect output to %q, but got %q", want, got)
+			t.Errorf("expect output to %v, but got %v", want, got)
 		}
 		if got, want := ctx.Value("bar").(int), 2; got != want {
-			t.Errorf("expect output to %q, but got %q", want, got)
+			t.Errorf("expect output to %v, but got %v", want, got)
 		}
 		return nil
 	}

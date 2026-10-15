@@ -8,11 +8,9 @@ gRPC server interceptors for [grpc-go](https://github.com/grpc/grpc-go).
 | -----------|--------|
 | [multiinterceptor](https://github.com/eltorocorp/go-grpc-request-id-interceptor/tree/master/multiinterceptor) | Chain multiple `UnaryServerInterceptor`s or `StreamServerInterceptor`s |
 | [panichandler](https://github.com/eltorocorp/go-grpc-request-id-interceptor/tree/master/panichandler) | Protect a process from aborting by panic and return Internal error as status code |
-| [zap](https://github.com/eltorocorp/go-grpc-request-id-interceptor/tree/master/zap) | Attach [zap](https://github.com/uber-go/zap) logger to each request |
 | [xrequestid](https://github.com/eltorocorp/go-grpc-request-id-interceptor/tree/master/xrequestid) | Generate X-Request-Id to each request |
 | [acceptlang](https://github.com/eltorocorp/go-grpc-request-id-interceptor/tree/master/acceptlang) | Parses Accept-Language from metadata |
 | [instrument](https://github.com/eltorocorp/go-grpc-request-id-interceptor/tree/master/instrument) | Instrumentation hook |
-| [requestdump](https://github.com/eltorocorp/go-grpc-request-id-interceptor/tree/master/requestdump) | Dump request/response messages |
 
 # Committers
 
